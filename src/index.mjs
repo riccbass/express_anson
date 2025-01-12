@@ -1,4 +1,13 @@
 import express from "express";
+import {
+  query,
+  body,
+  validationResult,
+  matchedData,
+  checkSchema,
+} from "express-validator";
+
+import { createUserValidationScehame } from "./utils/validationSchemas.mjs";
 
 //https://www.youtube.com/watch?v=--TQwiNIw28&list=PL_cUvD4qzbkwjmjy-KjbieZ8J9cGwxZpC
 
@@ -70,28 +79,47 @@ app.get(
 //   next();
 // });
 
-app.get("/api/users", (req, res) => {
-  const {
-    query: { filter, value },
-  } = req;
+app.get(
+  "/api/users",
+  query("filter")
+    .isString()
+    .notEmpty()
+    .withMessage("Não pode ser vazia")
+    .isLength({ min: 3, max: 10 })
+    .withMessage("Tamanho não está entre 3 e 10"),
+  (req, res) => {
+    // console.log(req["express-validator#contexts"]);
 
-  //when filter and value are undefined
-  if (!filter && !value) {
+    const result = validationResult(req);
+    console.log(result);
+
+    const {
+      query: { filter, value },
+    } = req;
+
+    //when filter and value are undefined
+    if (!filter && !value) {
+      return res.send(mockUsers);
+    }
+
+    if (filter && value) {
+      return res.send(mockUsers.filter((user) => user[filter].includes(value)));
+    }
+
     return res.send(mockUsers);
   }
+);
 
-  if (filter && value) {
-    return res.send(mockUsers.filter((user) => user[filter].includes(value)));
+app.post("/api/users", checkSchema(createUserValidationScehame), (req, res) => {
+  const result = validationResult(req);
+  console.log(result);
+
+  if (!result.isEmpty()) {
+    return res.status(400).send({ errors: result.array() });
   }
 
-  return res.send(mockUsers);
-});
-
-app.post("/api/users", (req, res) => {
-  const { body } = req;
-
-  const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...body };
-
+  const data = matchedData(req);
+  const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...data };
   mockUsers.push(newUser);
   return res.status(201).send(newUser);
 });
