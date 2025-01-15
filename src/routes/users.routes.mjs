@@ -21,6 +21,14 @@ router.get(
     .withMessage("Tamanho não está entre 3 e 10"),
   (req, res) => {
     // console.log(req["express-validator#contexts"]);
+    console.log(req.session.id);
+    req.sessionStore.get(req.session.id, (err, sessionData) => {
+      if (err) {
+        console.log(err);
+        throw err;
+      }
+      console.log(sessionData);
+    });
 
     const result = validationResult(req);
     console.log(result);

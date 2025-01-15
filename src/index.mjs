@@ -1,6 +1,7 @@
 import express from "express";
 import indexRouter from "./routes/index.routes.mjs";
 import cookieParser from "cookie-parser";
+import session from "express-session";
 
 //https://www.youtube.com/watch?v=--TQwiNIw28&list=PL_cUvD4qzbkwjmjy-KjbieZ8J9cGwxZpC
 
@@ -8,6 +9,16 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser("helloworld"));
+app.use(
+  session({
+    secret: "anso the dev",
+    saveUninitialized: false,
+    resave: false,
+    cookie: {
+      maxAge: 60_000 * 60,
+    },
+  })
+);
 app.use(indexRouter);
 
 const loggingMiddleware = (req, res, next) => {
@@ -39,6 +50,9 @@ app.get(
   //   next();
   // },
   (req, res) => {
+    console.log(req.session);
+    console.log(req.session.id);
+    req.session.visited = true;
     res.cookie("hello", "world", { maxAge: 10_000, signed: true });
 
     res.status(201).send({ msg: "Hello!" });
