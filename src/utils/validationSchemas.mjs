@@ -17,4 +17,7 @@ export const createUserValidationScehame = {
   displayName: {
     notEmpty: true,
   },
+  password: {
+    notEmpty: true,
+  },
 };

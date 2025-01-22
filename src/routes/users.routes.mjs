@@ -8,6 +8,12 @@ import {
 import { mockUsers } from "../utils/constants.mjs";
 import { createUserValidationScehame } from "../utils/validationSchemas.mjs";
 import { resolveIndexUserId } from "../utils/middlewares.mjs";
+import { hashPassword } from "../utils/helpers.mjs";
+import { User } from "../moongose/schemas/user.model.mjs";
+import {
+  createUserHandler,
+  getUserByIdHandler,
+} from "../handlers/users.handlers.mjs";
 
 const router = Router();
 
@@ -27,6 +33,7 @@ router.get(
         console.log(err);
         throw err;
       }
+      console.log("inside session store get");
       console.log(sessionData);
     });
 
@@ -50,35 +57,33 @@ router.get(
   }
 );
 
+// router.post(
+//   "/api/users",
+//   checkSchema(createUserValidationScehame),
+//   (req, res) => {
+//     const { body } = req;
+//     console.log(body);
+
+//     const result = validationResult(req);
+
+//     if (!result.isEmpty()) {
+//       return res.status(400).send({ errors: result.array() });
+//     }
+
+//     const data = matchedData(req);
+//     const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...data };
+//     mockUsers.push(newUser);
+//     return res.status(201).send(newUser);
+//   }
+// );
+
 router.post(
   "/api/users",
   checkSchema(createUserValidationScehame),
-  (req, res) => {
-    const { body } = req;
-    console.log(body);
-
-    const result = validationResult(req);
-
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errors: result.array() });
-    }
-
-    const data = matchedData(req);
-    const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...data };
-    mockUsers.push(newUser);
-    return res.status(201).send(newUser);
-  }
+  createUserHandler
 );
 
-router.get("/api/users/:id", resolveIndexUserId, (req, res) => {
-  const { findUserIndex } = req;
-
-  console.log(findUserIndex);
-
-  const findUser = mockUsers.find((user) => user.id === findUserIndex + 1);
-
-  return res.send(findUser);
-});
+router.get("/api/users/:id", resolveIndexUserId, getUserByIdHandler);
 
 router.put("/api/users/:id", resolveIndexUserId, (req, res) => {
   const { body, findUserIndex } = req;
